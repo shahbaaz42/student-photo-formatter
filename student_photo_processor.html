@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Photo Processor</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- JSZip for Download All feature -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .drag-active {
+            border-color: #3b82f6 !important;
+            background-color: #eff6ff !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-6 flex flex-col items-center">
+
+    <main class="w-full max-w-7xl flex flex-col gap-8">
+        
+        <!-- Header -->
+        <header class="text-center mt-4">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Student Photo Processor</h1>
+            <p class="text-gray-600">Auto-resize, add name/date, compress to < 40KB, and export as ZIP.</p>
+        </header>
+
+        <!-- Upload Zone -->
+        <section class="w-full">
+            <div id="dropZone" class="w-full max-w-3xl mx-auto border-2 border-dashed border-gray-300 rounded-xl bg-white p-12 text-center cursor-pointer hover:bg-gray-50 transition-colors duration-200">
+                <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                <h3 class="text-lg font-medium text-gray-900">Click or drag photos here</h3>
+                <p class="text-sm text-gray-500 mt-1">Accepts multiple JPG or PNG files.</p>
+                <p class="text-xs text-gray-400 mt-2">Format: "1234 Student Name.jpg"</p>
+                <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
+            </div>
+        </section>
+
+        <!-- Error/Message Container -->
+        <div id="messageBox" class="hidden w-full max-w-3xl mx-auto p-4 rounded-lg bg-red-50 text-red-700 text-sm border border-red-200 text-center"></div>
+
+        <!-- Processing Indicator -->
+        <div id="loading" class="hidden w-full text-center py-4">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p class="text-gray-600 mt-2 font-medium">Processing images...</p>
+        </div>
+
+        <!-- Results Grid -->
+        <section id="resultsSection" class="hidden w-full mt-4">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 border-b border-gray-200 pb-4">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4 sm:mb-0">Processed Photos</h2>
+                <div class="flex items-center gap-4">
+                    <button id="downloadAllBtn" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium px-5 py-2 rounded-lg transition-colors shadow-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Download All (ZIP)
+                    </button>
+                    <button id="clearBtn" class="text-sm text-red-600 hover:text-red-800 font-medium px-3 py-2 rounded hover:bg-red-50 transition">Clear All</button>
+                </div>
+            </div>
+            
+            <div id="resultsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                <!-- Image cards will be injected here -->
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const resultsSection = document.getElementById('resultsSection');
+        const resultsGrid = document.getElementById('resultsGrid');
+        const loading = document.getElementById('loading');
+        const clearBtn = document.getElementById('clearBtn');
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const messageBox = document.getElementById('messageBox');
+
+        // Target Configuration
+        const MAX_WIDTH = 400;
+        const MAX_HEIGHT = 500;
+        const TEXT_AREA_HEIGHT = 80;
+        const MAX_FILE_SIZE_KB = 40;
+        const DATE_TEXT = "06.10.2026";
+
+        // State to hold processed images for the ZIP export
+        let processedImages = [];
+
+        // UI Event Listeners
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-active');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-active');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-active');
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                handleFiles(e.dataTransfer.files);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                handleFiles(e.target.files);
+            }
+            fileInput.value = ''; 
+        });
+
+        clearBtn.addEventListener('click', () => {
+            resultsGrid.innerHTML = '';
+            processedImages = [];
+            resultsSection.classList.add('hidden');
+            showMessage('');
+        });
+
+        // Generate ZIP file using JSZip
+        downloadAllBtn.addEventListener('click', async () => {
+            if (processedImages.length === 0) return;
+            
+            const originalText = downloadAllBtn.innerHTML;
+            downloadAllBtn.innerHTML = `
+                <div class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Zipping...
+            `;
+            downloadAllBtn.disabled = true;
+
+            try {
+                const zip = new JSZip();
+                
+                processedImages.forEach(img => {
+                    zip.file(img.filename, img.blob);
+                });
+
+                const zipBlob = await zip.generateAsync({ type: "blob" });
+                const zipUrl = URL.createObjectURL(zipBlob);
+                
+                const a = document.createElement("a");
+                a.href = zipUrl;
+                a.download = "student_photos.zip";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(zipUrl);
+            } catch (error) {
+                console.error("Failed to generate ZIP", error);
+                showMessage("Failed to create ZIP file.");
+            } finally {
+                downloadAllBtn.innerHTML = originalText;
+                downloadAllBtn.disabled = false;
+            }
+        });
+
+        function showMessage(msg, isError = true) {
+            if (!msg) {
+                messageBox.classList.add('hidden');
+                return;
+            }
+            messageBox.textContent = msg;
+            messageBox.classList.remove('hidden');
+            messageBox.className = `w-full max-w-3xl mx-auto p-4 rounded-lg text-sm border text-center mb-4 ${isError ? 'bg-red-50 text-red-700 border-red-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`;
+        }
+
+        async function handleFiles(files) {
+            const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+            
+            if (imageFiles.length === 0) {
+                showMessage("No valid image files found. Please upload JPG or PNG images.");
+                return;
+            }
+
+            showMessage('');
+            loading.classList.remove('hidden');
+            resultsSection.classList.remove('hidden');
+
+            for (const file of imageFiles) {
+                try {
+                    await processImage(file);
+                } catch (error) {
+                    console.error(`Failed to process ${file.name}:`, error);
+                }
+            }
+
+            loading.classList.add('hidden');
+        }
+
+        function extractStudentName(filename) {
+            const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.')) || filename;
+            const firstSpaceIndex = nameWithoutExt.indexOf(' ');
+            if (firstSpaceIndex !== -1) {
+                return nameWithoutExt.substring(firstSpaceIndex + 1).trim();
+            }
+            return nameWithoutExt.trim();
+        }
+
+        function processImage(file) {
+            return new Promise((resolve, reject) => {
+                const studentName = extractStudentName(file.name);
+                const reader = new FileReader();
+
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = async function() {
+                        try {
+                            // Calculate new dimensions preserving aspect ratio
+                            let ratio = Math.min(MAX_WIDTH / img.width, MAX_HEIGHT / img.height);
+                            if (ratio > 1) ratio = 1; 
+
+                            const newWidth = img.width * ratio;
+                            const newHeight = img.height * ratio;
+
+                            // Create canvas
+                            const canvas = document.createElement('canvas');
+                            canvas.width = newWidth;
+                            canvas.height = newHeight + TEXT_AREA_HEIGHT;
+                            const ctx = canvas.getContext('2d');
+
+                            // Fill with white background
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                            // Draw scaled image
+                            ctx.drawImage(img, 0, 0, newWidth, newHeight);
+
+                            // Setup text styles
+                            ctx.fillStyle = '#000000';
+                            ctx.textAlign = 'center';
+                            
+                            // Adjust max width for text to add padding
+                            const maxTextWidth = newWidth - 20;
+
+                            // Draw Student Name (Centered, bold)
+                            ctx.font = 'bold 20px Arial, sans-serif';
+                            ctx.fillText(studentName.toUpperCase(), newWidth / 2, newHeight + 35, maxTextWidth);
+
+                            // Draw Date (Centered, slightly smaller)
+                            ctx.font = 'bold 14px Arial, sans-serif';
+                            ctx.fillText(DATE_TEXT, newWidth / 2, newHeight + 60, maxTextWidth);
+
+                            // Compress until under 40KB
+                            const blob = await compressCanvas(canvas, MAX_FILE_SIZE_KB);
+                            const safeFilename = `${studentName.toUpperCase()}.jpg`.replace(/[^a-z0-9_.-]/gi, '_');
+                            
+                            // Add to global state for ZIP export
+                            processedImages.push({ blob: blob, filename: safeFilename });
+
+                            // Render to UI
+                            createResultCard(blob, file.name, studentName.toUpperCase(), safeFilename);
+                            resolve();
+                        } catch (err) {
+                            reject(err);
+                        }
+                    };
+                    img.onerror = reject;
+                    img.src = event.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function compressCanvas(canvas, maxKB) {
+            let quality = 0.95;
+            let blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+            
+            // Iteratively reduce quality
+            while (blob.size > maxKB * 1024 && quality > 0.1) {
+                quality -= 0.05;
+                blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+            }
+            return blob;
+        }
+
+        function createResultCard(blob, originalFilename, studentName, safeFilename) {
+            const sizeKB = (blob.size / 1024).toFixed(1);
+            const objectUrl = URL.createObjectURL(blob);
+
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col hover:shadow-md transition-shadow duration-200';
+
+            // Determine badge color
+            let badgeClass = 'bg-green-100 text-green-700';
+            if (blob.size > MAX_FILE_SIZE_KB * 1024) {
+                badgeClass = 'bg-red-100 text-red-700';
+            }
+
+            card.innerHTML = `
+                <div class="relative bg-gray-50 flex-grow flex justify-center items-center p-4 min-h-[220px]">
+                    <img src="${objectUrl}" alt="Processed photo" class="max-h-56 object-contain shadow-sm border border-gray-200 bg-white">
+                    <span class="absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded-md ${badgeClass} shadow-sm border border-green-200/50">
+                        ${sizeKB} KB
+                    </span>
+                </div>
+                <div class="p-4 bg-white border-t border-gray-100 flex flex-col gap-1">
+                    <h4 class="font-semibold text-gray-800 truncate text-[15px]" title="${studentName}">${studentName}</h4>
+                    <p class="text-[12px] text-gray-500 truncate mb-3" title="${originalFilename}">From: ${originalFilename}</p>
+                    
+                    <a href="${objectUrl}" download="${safeFilename}" class="mt-auto w-full flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Download
+                    </a>
+                </div>
+            `;
+
+            // Append to grid
+            resultsGrid.appendChild(card);
+        }
+    </script>
+</body>
+</html>
