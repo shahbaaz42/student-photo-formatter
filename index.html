@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Teacher Utility Suite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- JSZip -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <!-- Module Stylesheets -->
+  <link rel="stylesheet" href="modules/scoreboard/scoreboard.css">
+  <link rel="stylesheet" href="modules/analytics/result-analytics.css">
+  <link rel="stylesheet" href="modules/analytics/page2-ui.css">
+  <link rel="stylesheet" href="modules/analytics/page3-ui.css">
+  <link rel="stylesheet" href="modules/analytics/page3-filter-ui.css">
+
+  <style>
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: #f6f4ed;
+      color: #142b25;
+    }
+    .suite-nav-tab {
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .suite-nav-tab.active {
+      background-color: #126148;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(18, 97, 72, 0.25);
+    }
+    .suite-nav-tab:not(.active) {
+      color: #66756f;
+      background-color: transparent;
+    }
+    .suite-nav-tab:not(.active):hover {
+      background-color: #e6ede9;
+      color: #142b25;
+    }
+    .drag-active {
+      border-color: #3b82f6 !important;
+      background-color: #eff6ff !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Navigation Bar -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-18 py-3 flex flex-col md:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-800 text-lime-300 flex items-center justify-center font-black text-xl font-['Manrope'] shadow-inner">
+          T
+        </div>
+        <div>
+          <strong class="font-extrabold text-base tracking-tight text-gray-900 font-['Manrope'] block">Teacher Utility Suite</strong>
+          <span class="text-[11px] text-gray-500 font-medium">Offline Client-Side Academic Utilities</span>
+        </div>
+      </div>
+
+      <!-- Suite Module Switcher -->
+      <nav class="flex items-center gap-1.5 bg-gray-100/90 p-1.5 rounded-xl border border-gray-200/80">
+        <button class="suite-nav-tab active" data-tab="tab-photo">Photo &amp; Scoreboard</button>
+        <button class="suite-nav-tab" data-tab="tab-scoreboard">Scoreboard Generator</button>
+        <button class="suite-nav-tab" data-tab="tab-analytics">Mark Analytics Dashboard</button>
+      </nav>
+
+      <div class="hidden lg:flex items-center gap-2 text-xs text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="font-medium">100% Client-Side Private</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
+
+    <!-- ========================================================================= -->
+    <!-- MODULE 1: PHOTO PROCESSOR & INTEGRATED ANALYTICAL SCOREBOARD -->
+    <!-- ========================================================================= -->
+    <section id="tab-photo" class="suite-tab-view flex flex-col gap-6">
+      
+      <!-- Module Header -->
+      <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <span class="text-xs font-bold text-emerald-700 tracking-wider uppercase">Integrated Module</span>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 font-['Manrope'] mt-1">Student Photo Processor &amp; Analytical Scoreboard</h1>
+          <p class="text-sm text-gray-500 mt-1 max-w-2xl">Compress and date-stamp passport photos to &lt; 40KB while linking student admission numbers directly to their analytical marks scoreboard.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <a href="student_photo_processor.html" target="_blank" class="text-xs font-semibold px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+            Standalone Window
+          </a>
+        </div>
+      </div>
+
+      <!-- DATA INGESTION POINT -->
+      <section class="w-full bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-md bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">1</span>
+              <h2 class="text-base font-bold text-gray-900">Data Ingestion Point: Class Marks Consolidation</h2>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Ingest your class consolidation .xlsx workbook. Admission numbers parsed from photos are matched instantly against this data.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="hubSampleMarksBtn" type="button" class="text-xs font-medium px-3.5 py-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              Load Sample Marks
+            </button>
+            <button id="hubMarksUploadBtn" type="button" class="text-xs font-semibold px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center gap-1.5 shadow-sm">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+              Upload Marks XLSX
+            </button>
+            <input type="file" id="hubMarksFileInput" accept=".xlsx" class="hidden">
+          </div>
+        </div>
+
+        <div id="hubIngestionStatus" class="mt-3 text-xs flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200 text-gray-600">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+            <span>No marks workbook ingested yet. Photos will display filename-derived names until marks data is loaded.</span>
+          </div>
+          <span class="text-[11px] text-gray-400 font-medium">Ready for XLSX</span>
+        </div>
+      </section>
+
+      <!-- PHOTO UPLOAD ZONE -->
+      <section class="w-full">
+        <div class="flex items-center gap-2 mb-2 px-1">
+          <span class="w-6 h-6 rounded-md bg-blue-600 text-white flex items-center justify-center font-bold text-xs">2</span>
+          <h2 class="text-base font-bold text-gray-900">Upload Student Passport Photos</h2>
+        </div>
+        <div id="hubDropZone" class="w-full border-2 border-dashed border-gray-300 rounded-xl bg-white p-10 text-center cursor-pointer hover:bg-gray-50 transition-colors duration-200">
+          <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+          </svg>
+          <h3 class="text-lg font-semibold text-gray-900">Click or drag student photos here</h3>
+          <p class="text-sm text-gray-500 mt-1">Accepts multiple JPG or PNG images.</p>
+          <p class="text-xs text-blue-600 font-medium mt-2 bg-blue-50 inline-block px-3 py-1 rounded-full border border-blue-100">
+            Recommended filename format: <span class="font-mono font-bold">"1234 Student Name.jpg"</span>
+          </p>
+          <input type="file" id="hubPhotoInput" multiple accept="image/*" class="hidden">
+        </div>
+      </section>
+
+      <!-- Message Box -->
+      <div id="hubMessageBox" class="hidden w-full p-4 rounded-lg bg-red-50 text-red-700 text-sm border border-red-200 text-center"></div>
+
+      <!-- Processing Indicator -->
+      <div id="hubLoading" class="hidden w-full text-center py-4">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <p class="text-gray-600 mt-2 font-medium">Processing images &amp; linking analytical scoreboards...</p>
+      </div>
+
+      <!-- Results Grid -->
+      <section id="hubResultsSection" class="hidden w-full mt-2">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-5 border-b border-gray-200 pb-4">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-800 font-['Manrope']">Processed Photos &amp; Analytical Scoreboards</h2>
+            <p class="text-xs text-gray-500 mt-0.5">Passport photos compressed to &lt; 40KB and rendered with analytical scoreboards.</p>
+          </div>
+          <div class="flex items-center gap-3 mt-3 sm:mt-0">
+            <button id="hubDownloadAllBtn" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium px-5 py-2.5 rounded-lg transition shadow-sm text-sm">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              Download Photos (ZIP)
+            </button>
+            <button id="hubClearBtn" class="text-sm text-red-600 hover:text-red-800 font-medium px-3 py-2 rounded-lg hover:bg-red-50 transition border border-transparent hover:border-red-200">Clear All</button>
+          </div>
+        </div>
+        
+        <div id="hubResultsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      </section>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- MODULE 2: SCOREBOARD GENERATOR -->
+    <!-- ========================================================================= -->
+    <section id="tab-scoreboard" class="suite-tab-view hidden scoreboard-container">
+      <div class="scoreboard-hero">
+        <div>
+          <span class="scoreboard-eyebrow">Academic Performance · V1</span>
+          <h1>Turn marks into a<br><em>house scoreboard.</em></h1>
+          <p>Upload your Marks Consolidation File, set exam details and generate a polished, house-wise scoreboard in seconds.</p>
+        </div>
+        <div class="privacy-badge">
+          <span>⌁</span>
+          <div>
+            <strong>Private by design</strong>
+            <p>Your workbook stays in this browser. Student data is never sent to a server.</p>
+          </div>
+        </div>
+      </div>
+
+      <nav class="steps-nav" aria-label="Generator progress">
+        <span class="active"><b>1</b> Upload</span><i></i><span><b>2</b> Exam Details</span><i></i><span><b>3</b> Maximum Marks</span><i></i><span><b>4</b> Generate</span><i></i><span><b>5</b> Preview &amp; Download</span>
+      </nav>
+
+      <section class="workspace-grid">
+        <article class="scoreboard-card">
+          <div class="section-heading"><span class="section-number">01</span><div><h2>Upload Marks Consolidation File</h2><p>Start with your Marks Consolidation File</p></div></div>
+          <label class="sb-dropzone" id="sbDropzone">
+            <input id="sbFileInput" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+            <span class="upload-icon">⇧</span><strong>Drop your workbook here</strong><p>or <u>browse from your computer</u></p><small>XLSX · MAXIMUM 10 MB</small>
+          </label>
+          <div id="sbFileSummary" class="file-summary" hidden></div>
+          <div id="sbUploadMessage" class="sb-message" role="alert" hidden></div>
+        </article>
+
+        <article class="scoreboard-card locked" id="sbExamCard">
+          <div class="section-heading"><span class="section-number">02</span><div><h2>Exam Details</h2><p>Tell us what this scoreboard is for</p></div></div>
+          <div class="form-grid">
+            <label>Exam Name<input id="sbExamName" placeholder="e.g. Pre Mid Term Exam" required></label>
+            <label>Class<input id="sbClassName" placeholder="e.g. X" required></label>
+            <label>Section<input id="sbSectionName" placeholder="e.g. BC" required></label>
+          </div>
+        </article>
+
+        <article class="scoreboard-card locked" id="sbMarksCard">
+          <div class="section-heading"><span class="section-number">03</span><div><h2>Maximum Marks</h2><p>Set the maximum for each detected subject</p></div></div>
+          <div class="same-marks"><label>Set same maximum marks for all subjects</label><div><input id="sbSameMarks" type="number" min="0.01" step="0.01" placeholder="e.g. 80"><button id="sbApplyMarks" class="btn-secondary" type="button">Apply to all</button></div></div>
+          <div id="sbSubjectMarks" class="subject-marks"></div>
+        </article>
+      </section>
+
+      <button id="sbGenerateBtn" class="btn-generate" disabled><span>Generate Scoreboard</span><b>→</b></button>
+      <div id="sbMessage" class="sb-message" role="alert" hidden></div>
+
+      <section id="sbPreview" class="preview-section" hidden>
+        <div class="preview-toolbar">
+          <div><span class="scoreboard-eyebrow">LIVE PREVIEW</span><h2>House Scoreboard</h2></div>
+          <div class="report-actions">
+            <button id="sbPdfBtn" class="btn-download" disabled>▤ Download Full Report PDF</button>
+            <button id="sbDownloadBtn" class="btn-download" disabled>⇩ Download Excel</button>
+          </div>
+        </div>
+        <div id="sbPreviewMeta" class="preview-meta"></div>
+        <div id="sbHouseSummary"></div>
+        <div id="sbHouseTables"></div>
+      </section>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- MODULE 3: STUDENT MARK ANALYTICS DASHBOARD -->
+    <!-- ========================================================================= -->
+    <section id="tab-analytics" class="suite-tab-view hidden">
+      <div class="analytics-hero">
+        <div>
+          <span class="scoreboard-eyebrow">RESULT ANALYTICS · 3-PAGE DASHBOARD</span>
+          <h1>See the whole result story.</h1>
+          <p>Upload a Marks Consolidation File and build an interactive examination analytics dashboard covering overall results, subject/class diagnostics, and individual student explorer.</p>
+        </div>
+        <div class="privacy-badge">
+          <span>⌁</span>
+          <div>
+            <strong>Local and private</strong>
+            <p>Names, admission numbers and marks never leave this device.</p>
+          </div>
+        </div>
+      </div>
+
+      <nav class="steps-nav" aria-label="Result analytics progress">
+        <span class="active"><b>1</b> Upload File</span><i></i><span><b>2</b> Exam Configuration</span><i></i><span><b>3</b> Generate Dashboard</span><i></i><span><b>4</b> 3-Page Diagnostics</span>
+      </nav>
+
+      <section class="analytics-setup">
+        <article class="scoreboard-card">
+          <div class="section-heading"><span class="section-number">01</span><div><h2>Upload Marks Consolidation File</h2><p>Student metadata and subject marks on the first worksheet</p></div></div>
+          <label class="sb-dropzone" id="analyticsDropzone">
+            <input id="analyticsFileInput" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+            <span class="upload-icon">⇧</span><strong>Drop your Marks Consolidation File here</strong><p>or <u>browse from your computer</u></p><small>XLSX · PROCESSED LOCALLY · MAXIMUM 10 MB</small>
+          </label>
+          <div id="analyticsFileSummary" class="file-summary" hidden></div>
+          <div id="analyticsUploadMessage" class="sb-message" role="alert" hidden></div>
+        </article>
+
+        <article class="scoreboard-card locked" id="analyticsConfigCard">
+          <div class="section-heading"><span class="section-number">02</span><div><h2>Exam Configuration</h2><p>Rules apply to every detected subject</p></div></div>
+          <div class="analytics-config-grid">
+            <label>Exam Name<input id="analyticsExamName" placeholder="e.g. Pre Mid Term Exam"></label>
+            <label>Academic Year<input id="analyticsYear" placeholder="e.g. 2026–27"></label>
+            <label>Maximum Marks<input id="analyticsMaximum" type="number" min="1" step="1" value="100"></label>
+            <label>Pass Mark<input id="analyticsPassMark" type="number" min="1" step="1" value="33"></label>
+          </div>
+        </article>
+
+        <button id="analyticsGenerate" class="btn-generate" disabled><span>Generate Interactive Dashboard</span><b>→</b></button>
+        <div id="analyticsMessage" class="sb-message" role="alert" hidden></div>
+
+        <section id="analyticsWarnings" class="warnings-card" hidden><h3>Data Warnings</h3><div id="analyticsWarningLines"></div></section>
+        <section id="analyticsRequirements" class="requirements-card" hidden>
+          <h3>Marks Consolidation File Requirements</h3>
+          <div class="requirements-scroll">
+            <table>
+              <thead><tr><th>Field / Rule</th><th>Requirement</th></tr></thead>
+              <tbody>
+                <tr><td>Student Name</td><td>Required; must not be blank</td></tr>
+                <tr><td>ADMNO</td><td>Required for every student; must be unique</td></tr>
+                <tr><td>Class &amp; Section</td><td>Required; every student must have a non-blank value</td></tr>
+                <tr><td>At least one Subject</td><td>Required</td></tr>
+                <tr><td>Subject Mark</td><td>Required; numeric mark</td></tr>
+                <tr><td>Maximum Marks</td><td>Required; positive whole number</td></tr>
+                <tr><td>Pass Mark</td><td>Required; positive whole number &le; Maximum Marks</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <!-- PAGE 1 OVERALL DASHBOARD -->
+      <section id="analyticsDashboard" class="analytics-dashboard" hidden>
+        <div class="dashboard-heading">
+          <div>
+            <span class="scoreboard-eyebrow" style="color: #c9ef72;">PAGE 1 · OVERALL SUMMARY</span>
+            <h2 id="dashboardTitle">Result Analytics Dashboard</h2>
+            <p id="dashboardSubtitle"></p>
+          </div>
+          <span class="local-badge">● Browser-local analysis</span>
+        </div>
+        <div class="dashboard-filters">
+          <label>Class<select id="analyticsClassFilter"><option value="">All</option></select></label>
+          <label id="analyticsGenderFilterField">Gender<select id="analyticsGenderFilter"><option value="">All</option></select></label>
+          <button id="analyticsResetFilters" class="filter-reset" type="button">Reset filters</button>
+          <span id="filterCount" aria-live="polite"></span>
+        </div>
+        <div id="analyticsEmpty" class="sb-message" hidden>No students match these filters.</div>
+        <div id="kpiGrid" class="kpi-grid"></div>
+        <div class="visual-grid">
+          <article class="dashboard-panel"><h3>Avg Subject Mark <small>present only</small></h3><div id="subjectChart" class="chart"></div></article>
+          <article class="dashboard-panel"><h3>Result Distribution</h3><div id="resultChart" class="chart"></div></article>
+          <article class="dashboard-panel range-panel"><h3>Overall Percentage Distribution</h3><div id="rangeChart" class="chart"></div></article>
+        </div>
+        <div class="ranking-grid">
+          <article class="dashboard-panel"><h3>Top 10 Students</h3><div class="table-scroll"><table id="topStudents"></table></div></article>
+          <article class="dashboard-panel"><h3>Students Requiring Support</h3><div class="table-scroll"><table id="supportStudents"></table></div></article>
+        </div>
+      </section>
+    </section>
+
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="bg-gray-900 text-white py-6 mt-12 border-t border-gray-800 text-xs text-center">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <span>Teacher Utility Suite · Offline Client-Side Academic Tools</span>
+      <span class="text-gray-400">Scoreboard Generator · Student Mark Analytics · Photo Processor</span>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="vendor/xlsx-reader.js"></script>
+  <script src="modules/scoreboard/scoreboard.js"></script>
+  <script src="modules/analytics/result-analytics-core.js"></script>
+  <script src="modules/analytics/result-analytics.js"></script>
+  <script src="modules/analytics/page2-analytics.js"></script>
+  <script src="modules/analytics/page2-ui.js"></script>
+  <script src="modules/analytics/page3-analytics.js"></script>
+  <script src="modules/analytics/page3-ui.js"></script>
+  <script src="modules/analytics/page3-filter-ui.js"></script>
+  <script src="modules/integration/photo-analytics-bridge.js"></script>
+
+  <!-- Hub Script -->
+  <script>
+    (function () {
+      "use strict";
+
+      // Tab Switching
+      const tabs = document.querySelectorAll('.suite-nav-tab');
+      const views = document.querySelectorAll('.suite-tab-view');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const targetId = tab.dataset.tab;
+          tabs.forEach(t => t.classList.toggle('active', t === tab));
+          views.forEach(v => v.classList.toggle('hidden', v.id !== targetId));
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      });
+
+      // ==========================================
+      // Module 1 Hub Logic (Photo Processor & Scoreboard)
+      // ==========================================
+      const dropZone = document.getElementById('hubDropZone');
+      const photoInput = document.getElementById('hubPhotoInput');
+      const resultsSection = document.getElementById('hubResultsSection');
+      const resultsGrid = document.getElementById('hubResultsGrid');
+      const loading = document.getElementById('hubLoading');
+      const clearBtn = document.getElementById('hubClearBtn');
+      const downloadAllBtn = document.getElementById('hubDownloadAllBtn');
+      const messageBox = document.getElementById('hubMessageBox');
+
+      const hubMarksUploadBtn = document.getElementById('hubMarksUploadBtn');
+      const hubMarksFileInput = document.getElementById('hubMarksFileInput');
+      const hubSampleMarksBtn = document.getElementById('hubSampleMarksBtn');
+      const hubIngestionStatus = document.getElementById('hubIngestionStatus');
+
+      const MAX_WIDTH = 400;
+      const MAX_HEIGHT = 500;
+      const TEXT_AREA_HEIGHT = 80;
+      const MAX_FILE_SIZE_KB = 40;
+      const DATE_TEXT = "06.10.2026";
+
+      let processedImages = [];
+      let cardRecords = [];
+
+      dropZone.addEventListener('click', () => photoInput.click());
+      dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-active'); });
+      dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('drag-active'); });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-active');
+        if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files);
+      });
+      photoInput.addEventListener('change', (e) => {
+        if (e.target.files?.length) handleFiles(e.target.files);
+        photoInput.value = '';
+      });
+
+      clearBtn.addEventListener('click', () => {
+        resultsGrid.innerHTML = '';
+        processedImages = [];
+        cardRecords = [];
+        resultsSection.classList.add('hidden');
+      });
+
+      hubMarksUploadBtn.addEventListener('click', () => hubMarksFileInput.click());
+      hubMarksFileInput.addEventListener('change', async (e) => {
+        if (e.target.files?.length) {
+          try {
+            const summary = await window.PhotoAnalyticsBridge.ingestMarksWorkbook(e.target.files[0]);
+            updateIngestionBadge(e.target.files[0].name, summary);
+            refreshCardScoreboards();
+          } catch (err) {
+            alert("Error reading marks workbook: " + err.message);
+          }
+        }
+        hubMarksFileInput.value = '';
+      });
+
+      hubSampleMarksBtn.addEventListener('click', async () => {
+        try {
+          const summary = await window.PhotoAnalyticsBridge.loadSampleMarks();
+          updateIngestionBadge("Sample Marks Consolidation (8 Students)", summary);
+          refreshCardScoreboards();
+          hubSampleMarksBtn.textContent = "✓ Sample Marks Active";
+        } catch (err) {
+          alert("Error loading sample marks: " + err.message);
+        }
+      });
+
+      function updateIngestionBadge(name, summary) {
+        hubIngestionStatus.className = 'mt-3 text-xs flex items-center justify-between p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800';
+        hubIngestionStatus.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span><b>Ingestion Active:</b> ${name} — <b>${summary.studentCount}</b> students indexed across <b>${summary.subjects.length}</b> subjects.</span>
+          </div>
+          <span class="text-[11px] font-semibold text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-300">Auto-linking Ready</span>
+        `;
+      }
+
+      function refreshCardScoreboards() {
+        cardRecords.forEach(record => {
+          const el = document.getElementById(`hub-scoreboard-${record.id}`);
+          if (el) el.innerHTML = window.PhotoAnalyticsBridge.renderScoreboardHTML(record.admissionNumber, record.studentName);
+        });
+      }
+
+      downloadAllBtn.addEventListener('click', async () => {
+        if (!processedImages.length) return;
+        const zip = new JSZip();
+        processedImages.forEach(img => zip.file(img.filename, img.blob));
+        const blob = await zip.generateAsync({ type: "blob" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "student_photos.zip";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      });
+
+      async function handleFiles(files) {
+        const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+        if (!imageFiles.length) return;
+        loading.classList.remove('hidden');
+        resultsSection.classList.remove('hidden');
+        for (const file of imageFiles) {
+          try { await processImage(file); } catch (e) { console.error(e); }
+        }
+        loading.classList.add('hidden');
+      }
+
+      function processImage(file) {
+        return new Promise((resolve, reject) => {
+          const { admissionNumber, studentName } = window.PhotoAnalyticsBridge.parsePhotoFilename(file.name);
+          const reader = new FileReader();
+          reader.onload = function (event) {
+            const img = new Image();
+            img.onload = async function () {
+              try {
+                let ratio = Math.min(MAX_WIDTH / img.width, MAX_HEIGHT / img.height);
+                if (ratio > 1) ratio = 1;
+                const newWidth = img.width * ratio;
+                const newHeight = img.height * ratio;
+                const canvas = document.createElement('canvas');
+                canvas.width = newWidth;
+                canvas.height = newHeight + TEXT_AREA_HEIGHT;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, newWidth, newHeight);
+                ctx.fillStyle = '#000000';
+                ctx.textAlign = 'center';
+                ctx.font = 'bold 20px Arial, sans-serif';
+                ctx.fillText(studentName.toUpperCase(), newWidth / 2, newHeight + 35, newWidth - 20);
+                ctx.font = 'bold 14px Arial, sans-serif';
+                ctx.fillText(DATE_TEXT, newWidth / 2, newHeight + 60, newWidth - 20);
+
+                let quality = 0.95;
+                let blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', quality));
+                while (blob.size > MAX_FILE_SIZE_KB * 1024 && quality > 0.1) {
+                  quality -= 0.05;
+                  blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', quality));
+                }
+                const safeFilename = `${studentName.toUpperCase()}.jpg`.replace(/[^a-z0-9_.-]/gi, '_');
+                processedImages.push({ blob, filename: safeFilename });
+
+                const cardId = 'hub-card-' + Math.random().toString(36).substr(2, 9);
+                window.PhotoAnalyticsBridge.registerProcessedPhoto(admissionNumber, {
+                  blob,
+                  objectUrl: URL.createObjectURL(blob),
+                  filename: safeFilename,
+                  originalFilename: file.name,
+                  studentName: studentName.toUpperCase(),
+                  sizeKB: (blob.size / 1024).toFixed(1)
+                });
+
+                cardRecords.push({ id: cardId, admissionNumber, studentName: studentName.toUpperCase() });
+
+                createResultCard(blob, file.name, studentName.toUpperCase(), safeFilename, admissionNumber, cardId);
+                resolve();
+              } catch (e) { reject(e); }
+            };
+            img.onerror = reject;
+            img.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function createResultCard(blob, originalFilename, studentName, safeFilename, admissionNumber, cardId) {
+        const sizeKB = (blob.size / 1024).toFixed(1);
+        const objectUrl = URL.createObjectURL(blob);
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col hover:shadow-md transition-shadow';
+        const scoreboardHTML = window.PhotoAnalyticsBridge.renderScoreboardHTML(admissionNumber, studentName);
+
+        card.innerHTML = `
+          <div class="p-4 flex flex-col sm:flex-row gap-4 items-center sm:items-start border-b border-gray-100 bg-gray-50/50">
+            <div class="relative flex-shrink-0 flex justify-center items-center">
+              <img src="${objectUrl}" alt="Photo" class="w-28 h-36 object-cover shadow-sm border border-gray-200 rounded-lg bg-white">
+              <span class="absolute top-1.5 right-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700 border border-green-200">
+                ${sizeKB} KB
+              </span>
+            </div>
+            <div class="flex-grow flex flex-col justify-between h-full min-w-0 w-full sm:w-auto">
+              <div>
+                <span class="px-2 py-0.5 bg-gray-800 text-white font-mono font-bold text-[10px] rounded">
+                  ADMNO: ${admissionNumber || "N/A"}
+                </span>
+                <h4 class="font-bold text-gray-900 truncate text-base mt-1" title="${studentName}">${studentName}</h4>
+                <p class="text-[11px] text-gray-400 truncate" title="${originalFilename}">From: ${originalFilename}</p>
+              </div>
+              <a href="${objectUrl}" download="${safeFilename}" class="mt-3 inline-flex justify-center items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-1.5 px-3 rounded-lg transition shadow-sm w-full">
+                Download Photo
+              </a>
+            </div>
+          </div>
+          <div class="p-4 bg-white flex-grow flex flex-col" id="hub-scoreboard-${cardId}">
+            ${scoreboardHTML}
+          </div>
+        `;
+        resultsGrid.appendChild(card);
+      }
+
+      // ==========================================
+      // Module 2 Logic (Scoreboard Generator bindings)
+      // ==========================================
+      const sbState = { structure: null, houses: null, filename: "" };
+      const $sb = id => document.getElementById(id);
+      const sbEscape = v => String(v ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+      function invalidateSb() {
+        window.ScoreboardGenerator.resetScoreboardState(sbState);
+        $sb("sbPreview").hidden = true;
+        $sb("sbDownloadBtn").disabled = true;
+        $sb("sbPdfBtn").disabled = true;
+      }
+
+      async function loadSbFile(file) {
+        try {
+          invalidateSb();
+          if (!file || !file.name.toLowerCase().endsWith(".xlsx")) throw new Error("Please choose an .xlsx workbook.");
+          const wb = await window.XLSX.read(await file.arrayBuffer(), { type: "array" });
+          const sheet = wb.Sheets[wb.SheetNames[0]];
+          sbState.structure = window.ScoreboardGenerator.detectStructure(window.XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: true }));
+          sbState.filename = file.name;
+          const houses = [...new Set(sbState.structure.dataRows.map(r => window.ScoreboardGenerator.normalizeHouse(r[sbState.structure.columns.house])))];
+          $sb("sbFileSummary").innerHTML = `<div class="file-row"><div><strong>✓ ${sbEscape(file.name)}</strong><small>${sbState.structure.dataRows.length} students · ${sbState.structure.subjects.length} subjects · ${houses.length} houses</small></div></div><div class="detected">${sbState.structure.subjects.map(s => `<span class="tag">${sbEscape(s.name)}</span>`).join("")}${houses.map(h => `<span class="tag">${sbEscape(h)}</span>`).join("")}</div>`;
+          $sb("sbFileSummary").hidden = false;
+          [$sb("sbExamCard"), $sb("sbMarksCard")].forEach(el => el.classList.remove("locked"));
+          $sb("sbGenerateBtn").disabled = false;
+          $sb("sbSubjectMarks").innerHTML = sbState.structure.subjects.map(s => `<label>${sbEscape(s.name)}<input class="sb-max-mark" data-subject="${sbEscape(s.name)}" type="number" min="0.01" step="0.01" placeholder="Maximum marks"></label>`).join("");
+        } catch (e) {
+          alert("Scoreboard file error: " + e.message);
+        }
+      }
+
+      $sb("sbFileInput")?.addEventListener("change", e => loadSbFile(e.target.files[0]));
+      $sb("sbDropzone")?.addEventListener("click", () => $sb("sbFileInput").click());
+      $sb("sbApplyMarks")?.addEventListener("click", () => {
+        const v = $sb("sbSameMarks").value;
+        if (Number(v) > 0) document.querySelectorAll(".sb-max-mark").forEach(i => i.value = v);
+      });
+
+      $sb("sbGenerateBtn")?.addEventListener("click", () => {
+        try {
+          const details = { exam: $sb("sbExamName").value.trim(), className: $sb("sbClassName").value.trim(), section: $sb("sbSectionName").value.trim() };
+          if (!details.exam || !details.className || !details.section) throw new Error("Complete Exam Name, Class, and Section.");
+          const maxs = {};
+          document.querySelectorAll(".sb-max-mark").forEach(input => maxs[input.dataset.subject] = Number(input.value));
+          if (Object.values(maxs).some(v => !Number.isFinite(v) || v <= 0)) throw new Error("Enter a valid positive maximum mark for each subject.");
+          sbState.details = details;
+          sbState.maximums = maxs;
+          sbState.houses = window.ScoreboardGenerator.buildScoreboard(sbState.structure, maxs);
+          sbState.generatedFor = sbState.filename;
+
+          // Render Scoreboard Preview
+          $sb("sbPreviewMeta").innerHTML = `<strong>${sbEscape(details.exam)}</strong><span>Class ${sbEscape(details.className)}</span><span>Section ${sbEscape(details.section)}</span><span>${sbState.structure.dataRows.length} students</span>`;
+          $sb("sbHouseSummary").innerHTML = `<div class="summary-grid">${Object.entries(sbState.houses).map(([h, students]) => {
+            const st = window.ScoreboardGenerator.houseStats(students);
+            return `<div class="summary-card"><small>${sbEscape(h)}</small><strong>${students.length} students</strong><span>${st.total} total · ${st.average} avg/student</span></div>`;
+          }).join("")}</div>`;
+          $sb("sbHouseTables").innerHTML = Object.entries(sbState.houses).map(([house, students], index) => {
+            const st = window.ScoreboardGenerator.houseStats(students);
+            return `<article class="house-block"><div class="house-title-row"><h3>${sbEscape(house)}</h3><button class="house-pdf" data-house-index="${index}">▤ Download House PDF</button></div><div class="table-scroll"><table class="scoreboard-table"><thead><tr><th rowspan="2">Roll No</th><th rowspan="2">Admission No</th><th rowspan="2">Student Name</th>${sbState.structure.subjects.map(s => `<th colspan="2">${sbEscape(s.name)}</th>`).join("")}<th rowspan="2">Total Points</th><th rowspan="2">Average Points</th></tr><tr>${sbState.structure.subjects.map(() => `<th>%</th><th>Pts</th>`).join("")}</tr></thead><tbody>${students.map(s => `<tr><td>${sbEscape(s.roll)}</td><td>${sbEscape(s.admission)}</td><td class="name">${sbEscape(s.name)}</td>${s.results.map(r => `<td>${window.ScoreboardGenerator.fmt(r.percentage)}</td><td>${window.ScoreboardGenerator.fmt(r.points)}</td>`).join("")}<td>${s.total}</td><td>${window.ScoreboardGenerator.fmt(s.average)}</td></tr>`).join("")}<tr class="totals"><td colspan="3">House Totals / Averages</td>${sbState.structure.subjects.map((_, i) => { const pts = students.reduce((a, s) => a + (s.results[i].points ?? 0), 0); return `<td>—</td><td>${pts}</td>`; }).join("")}<td>${st.total}</td><td>${st.average}</td></tr></tbody></table></div></article>`;
+          }).join("");
+
+          $sb("sbDownloadBtn").disabled = false;
+          $sb("sbPdfBtn").disabled = false;
+          $sb("sbPreview").hidden = false;
+          $sb("sbPreview").scrollIntoView({ behavior: "smooth" });
+        } catch (e) { alert(e.message); }
+      });
+
+      $sb("sbDownloadBtn")?.addEventListener("click", async () => {
+        const wb = window.ScoreboardGenerator.buildConsolidatedWorkbook(sbState.structure, sbState.houses, sbState.details, window.XLSX);
+        const slug = window.ScoreboardGenerator.buildReportTitle(sbState.details);
+        await window.XLSX.writeFile(wb, `${slug}.xlsx`);
+      });
+
+      $sb("sbPdfBtn")?.addEventListener("click", () => {
+        const popup = window.open("", "_blank");
+        if (popup) {
+          popup.document.open();
+          popup.document.write(window.ScoreboardGenerator.printableReport(sbState.houses, sbState.structure, sbState.details));
+          popup.document.close();
+        }
+      });
+
+      $sb("sbHouseTables")?.addEventListener("click", e => {
+        const btn = e.target.closest(".house-pdf");
+        if (btn) {
+          const entry = Object.entries(sbState.houses)[Number(btn.dataset.houseIndex)];
+          const popup = window.open("", "_blank");
+          if (popup) {
+            popup.document.open();
+            popup.document.write(window.ScoreboardGenerator.printableReport(sbState.houses, sbState.structure, sbState.details, entry));
+            popup.document.close();
+          }
+        }
+      });
+
+    })();
+  </script>
+</body>
+</html>

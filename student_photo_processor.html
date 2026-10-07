@@ -3,13 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Photo Processor</title>
+    <title>Student Photo Processor & Analytical Scoreboard</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- JSZip for Download All feature -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <!-- Client-side XLSX parser & transformers -->
+    <script src="vendor/xlsx-reader.js"></script>
+    <script src="modules/scoreboard/scoreboard.js"></script>
+    <script src="modules/analytics/result-analytics-core.js"></script>
+    <script src="modules/analytics/page2-analytics.js"></script>
+    <script src="modules/analytics/page3-analytics.js"></script>
+    <script src="modules/integration/photo-analytics-bridge.js"></script>
     
     <style>
         body {
@@ -20,57 +28,113 @@
             border-color: #3b82f6 !important;
             background-color: #eff6ff !important;
         }
+        .marks-drag-active {
+            border-color: #059669 !important;
+            background-color: #ecfdf5 !important;
+        }
     </style>
 </head>
-<body class="min-h-screen p-6 flex flex-col items-center">
+<body class="min-h-screen p-4 sm:p-6 flex flex-col items-center">
 
-    <main class="w-full max-w-7xl flex flex-col gap-8">
+    <main class="w-full max-w-7xl flex flex-col gap-6">
         
         <!-- Header -->
-        <header class="text-center mt-4">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">Student Photo Processor</h1>
-            <p class="text-gray-600">Auto-resize, add name/date, compress to < 40KB, and export as ZIP.</p>
+        <header class="text-center mt-2 flex flex-col items-center">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold uppercase tracking-wider mb-2">
+                <span>Teacher Utility Suite</span>
+            </div>
+            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Student Photo Processor &amp; Analytical Scoreboard</h1>
+            <p class="text-gray-600 max-w-2xl mt-1 text-sm sm:text-base">Auto-resize, date-stamp, compress photos to &lt; 40KB, and automatically link student admission numbers to client-side analytical scoreboards.</p>
+            
+            <div class="flex items-center gap-3 mt-3">
+                <a href="index.html" class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                    Open Full Suite Dashboard
+                </a>
+            </div>
         </header>
 
-        <!-- Upload Zone -->
+        <!-- DATA INGESTION POINT (Marks Consolidation Workbook) -->
+        <section class="w-full bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-md bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">1</span>
+                        <h2 class="text-base font-bold text-gray-900">Data Ingestion Point: Marks Consolidation Workbook</h2>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Ingest class marks (.xlsx) to automatically parse admission numbers and render analytical scoreboards alongside photos.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="loadSampleMarksBtn" type="button" class="text-xs font-medium px-3.5 py-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        Load Sample Marks Data
+                    </button>
+                    <button id="marksUploadBtn" type="button" class="text-xs font-semibold px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center gap-1.5 shadow-sm">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        Upload Marks XLSX
+                    </button>
+                    <input type="file" id="marksFileInput" accept=".xlsx" class="hidden">
+                </div>
+            </div>
+
+            <!-- Ingestion Status Badge -->
+            <div id="ingestionStatus" class="mt-3 text-xs flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200 text-gray-600">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                    <span>No marks workbook ingested yet. Photos will show filename-based student names until marks data is loaded.</span>
+                </div>
+                <span class="text-[11px] text-gray-400">Ready for XLSX</span>
+            </div>
+        </section>
+
+        <!-- PHOTO UPLOAD ZONE -->
         <section class="w-full">
-            <div id="dropZone" class="w-full max-w-3xl mx-auto border-2 border-dashed border-gray-300 rounded-xl bg-white p-12 text-center cursor-pointer hover:bg-gray-50 transition-colors duration-200">
-                <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <div class="flex items-center gap-2 mb-2 px-1">
+                <span class="w-6 h-6 rounded-md bg-blue-600 text-white flex items-center justify-center font-bold text-xs">2</span>
+                <h2 class="text-base font-bold text-gray-900">Student Passport Photos Upload Zone</h2>
+            </div>
+            <div id="dropZone" class="w-full border-2 border-dashed border-gray-300 rounded-xl bg-white p-10 text-center cursor-pointer hover:bg-gray-50 transition-colors duration-200">
+                <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
-                <h3 class="text-lg font-medium text-gray-900">Click or drag photos here</h3>
-                <p class="text-sm text-gray-500 mt-1">Accepts multiple JPG or PNG files.</p>
-                <p class="text-xs text-gray-400 mt-2">Format: "1234 Student Name.jpg"</p>
+                <h3 class="text-lg font-semibold text-gray-900">Click or drag student photos here</h3>
+                <p class="text-sm text-gray-500 mt-1">Accepts multiple JPG or PNG image files.</p>
+                <p class="text-xs text-blue-600 font-medium mt-2 bg-blue-50 inline-block px-3 py-1 rounded-full border border-blue-100">
+                    Recommended filename format: <span class="font-mono font-bold">"1234 Student Name.jpg"</span> (Admission Number + Space + Name)
+                </p>
                 <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
             </div>
         </section>
 
         <!-- Error/Message Container -->
-        <div id="messageBox" class="hidden w-full max-w-3xl mx-auto p-4 rounded-lg bg-red-50 text-red-700 text-sm border border-red-200 text-center"></div>
+        <div id="messageBox" class="hidden w-full p-4 rounded-lg bg-red-50 text-red-700 text-sm border border-red-200 text-center"></div>
 
         <!-- Processing Indicator -->
         <div id="loading" class="hidden w-full text-center py-4">
             <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p class="text-gray-600 mt-2 font-medium">Processing images...</p>
+            <p class="text-gray-600 mt-2 font-medium">Processing images and linking analytical scoreboards...</p>
         </div>
 
         <!-- Results Grid -->
-        <section id="resultsSection" class="hidden w-full mt-4">
-            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 border-b border-gray-200 pb-4">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-4 sm:mb-0">Processed Photos</h2>
-                <div class="flex items-center gap-4">
-                    <button id="downloadAllBtn" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium px-5 py-2 rounded-lg transition-colors shadow-sm">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <section id="resultsSection" class="hidden w-full mt-2">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-5 border-b border-gray-200 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Processed Photos &amp; Analytical Scoreboards</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Passport photos compressed to &lt; 40KB and rendered with real-time academic analytics.</p>
+                </div>
+                <div class="flex items-center gap-3 mt-3 sm:mt-0">
+                    <button id="downloadAllBtn" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium px-5 py-2.5 rounded-lg transition-colors shadow-sm text-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg>
-                        Download All (ZIP)
+                        Download All Photos (ZIP)
                     </button>
-                    <button id="clearBtn" class="text-sm text-red-600 hover:text-red-800 font-medium px-3 py-2 rounded hover:bg-red-50 transition">Clear All</button>
+                    <button id="clearBtn" class="text-sm text-red-600 hover:text-red-800 font-medium px-3 py-2 rounded-lg hover:bg-red-50 transition border border-transparent hover:border-red-200">Clear All</button>
                 </div>
             </div>
             
-            <div id="resultsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                <!-- Image cards will be injected here -->
+            <div id="resultsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Image cards with analytical scoreboards will be injected here -->
             </div>
         </section>
 
@@ -86,6 +150,12 @@
         const downloadAllBtn = document.getElementById('downloadAllBtn');
         const messageBox = document.getElementById('messageBox');
 
+        // Marks Ingestion elements
+        const marksUploadBtn = document.getElementById('marksUploadBtn');
+        const marksFileInput = document.getElementById('marksFileInput');
+        const loadSampleMarksBtn = document.getElementById('loadSampleMarksBtn');
+        const ingestionStatus = document.getElementById('ingestionStatus');
+
         // Target Configuration
         const MAX_WIDTH = 400;
         const MAX_HEIGHT = 500;
@@ -95,8 +165,10 @@
 
         // State to hold processed images for the ZIP export
         let processedImages = [];
+        // Registered card records for reactive scoreboard updates
+        let cardRecords = [];
 
-        // UI Event Listeners
+        // UI Event Listeners for Photos
         dropZone.addEventListener('click', () => fileInput.click());
         
         dropZone.addEventListener('dragover', (e) => {
@@ -127,9 +199,68 @@
         clearBtn.addEventListener('click', () => {
             resultsGrid.innerHTML = '';
             processedImages = [];
+            cardRecords = [];
             resultsSection.classList.add('hidden');
             showMessage('');
         });
+
+        // MARKS INGESTION POINT HANDLERS
+        marksUploadBtn.addEventListener('click', () => marksFileInput.click());
+
+        marksFileInput.addEventListener('change', async (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                await handleMarksFile(e.target.files[0]);
+            }
+            marksFileInput.value = '';
+        });
+
+        loadSampleMarksBtn.addEventListener('click', async () => {
+            try {
+                loadSampleMarksBtn.disabled = true;
+                loadSampleMarksBtn.innerHTML = `Loading...`;
+                const summary = await window.PhotoAnalyticsBridge.loadSampleMarks();
+                updateIngestionBadge("Sample Marks Consolidation (8 Students)", summary);
+                refreshCardScoreboards();
+            } catch (err) {
+                console.error("Failed to load sample marks:", err);
+                showMessage("Failed to load sample marks data: " + err.message);
+            } finally {
+                loadSampleMarksBtn.disabled = false;
+                loadSampleMarksBtn.innerHTML = `✓ Sample Marks Loaded`;
+            }
+        });
+
+        async function handleMarksFile(file) {
+            try {
+                const summary = await window.PhotoAnalyticsBridge.ingestMarksWorkbook(file);
+                updateIngestionBadge(file.name, summary);
+                refreshCardScoreboards();
+            } catch (err) {
+                console.error("Failed to ingest marks workbook:", err);
+                showMessage("Marks Workbook Error: " + err.message);
+            }
+        }
+
+        function updateIngestionBadge(filename, summary) {
+            ingestionStatus.className = 'mt-3 text-xs flex items-center justify-between p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800';
+            ingestionStatus.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span><b>Ingestion Active:</b> ${escapeHtml(filename)} — <b>${summary.studentCount}</b> students indexed across <b>${summary.subjects.length}</b> subjects.</span>
+                </div>
+                <span class="text-[11px] font-semibold text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-300">Auto-linking Ready</span>
+            `;
+        }
+
+        // Re-render scoreboards for all existing cards when marks data changes
+        function refreshCardScoreboards() {
+            cardRecords.forEach(record => {
+                const scoreboardContainer = document.getElementById(`scoreboard-${record.id}`);
+                if (scoreboardContainer) {
+                    scoreboardContainer.innerHTML = window.PhotoAnalyticsBridge.renderScoreboardHTML(record.admissionNumber, record.studentName);
+                }
+            });
+        }
 
         // Generate ZIP file using JSZip
         downloadAllBtn.addEventListener('click', async () => {
@@ -175,7 +306,7 @@
             }
             messageBox.textContent = msg;
             messageBox.classList.remove('hidden');
-            messageBox.className = `w-full max-w-3xl mx-auto p-4 rounded-lg text-sm border text-center mb-4 ${isError ? 'bg-red-50 text-red-700 border-red-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`;
+            messageBox.className = `w-full max-w-7xl mx-auto p-4 rounded-lg text-sm border text-center mb-4 ${isError ? 'bg-red-50 text-red-700 border-red-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`;
         }
 
         async function handleFiles(files) {
@@ -201,18 +332,10 @@
             loading.classList.add('hidden');
         }
 
-        function extractStudentName(filename) {
-            const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.')) || filename;
-            const firstSpaceIndex = nameWithoutExt.indexOf(' ');
-            if (firstSpaceIndex !== -1) {
-                return nameWithoutExt.substring(firstSpaceIndex + 1).trim();
-            }
-            return nameWithoutExt.trim();
-        }
-
         function processImage(file) {
             return new Promise((resolve, reject) => {
-                const studentName = extractStudentName(file.name);
+                // Parse admission number and student name from filename
+                const { admissionNumber, studentName } = window.PhotoAnalyticsBridge.parsePhotoFilename(file.name);
                 const reader = new FileReader();
 
                 reader.onload = function(event) {
@@ -261,8 +384,26 @@
                             // Add to global state for ZIP export
                             processedImages.push({ blob: blob, filename: safeFilename });
 
-                            // Render to UI
-                            createResultCard(blob, file.name, studentName.toUpperCase(), safeFilename);
+                            // Register with the Photo-Analytics Bridge
+                            const cardId = 'card-' + Math.random().toString(36).substr(2, 9);
+                            window.PhotoAnalyticsBridge.registerProcessedPhoto(admissionNumber, {
+                                blob,
+                                objectUrl: URL.createObjectURL(blob),
+                                filename: safeFilename,
+                                originalFilename: file.name,
+                                studentName: studentName.toUpperCase(),
+                                sizeKB: (blob.size / 1024).toFixed(1)
+                            });
+
+                            // Record for reactive scoreboard updates
+                            cardRecords.push({
+                                id: cardId,
+                                admissionNumber,
+                                studentName: studentName.toUpperCase()
+                            });
+
+                            // Render to UI alongside Analytical Scoreboard
+                            createResultCard(blob, file.name, studentName.toUpperCase(), safeFilename, admissionNumber, cardId);
                             resolve();
                         } catch (err) {
                             reject(err);
@@ -288,41 +429,62 @@
             return blob;
         }
 
-        function createResultCard(blob, originalFilename, studentName, safeFilename) {
+        function createResultCard(blob, originalFilename, studentName, safeFilename, admissionNumber, cardId) {
             const sizeKB = (blob.size / 1024).toFixed(1);
             const objectUrl = URL.createObjectURL(blob);
 
             const card = document.createElement('div');
-            card.className = 'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col hover:shadow-md transition-shadow duration-200';
+            card.className = 'bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col hover:shadow-md transition-shadow duration-200';
 
             // Determine badge color
-            let badgeClass = 'bg-green-100 text-green-700';
+            let badgeClass = 'bg-green-100 text-green-700 border-green-200';
             if (blob.size > MAX_FILE_SIZE_KB * 1024) {
-                badgeClass = 'bg-red-100 text-red-700';
+                badgeClass = 'bg-red-100 text-red-700 border-red-200';
             }
 
+            // Get scoreboard HTML rendered alongside photo
+            const scoreboardHTML = window.PhotoAnalyticsBridge.renderScoreboardHTML(admissionNumber, studentName);
+
             card.innerHTML = `
-                <div class="relative bg-gray-50 flex-grow flex justify-center items-center p-4 min-h-[220px]">
-                    <img src="${objectUrl}" alt="Processed photo" class="max-h-56 object-contain shadow-sm border border-gray-200 bg-white">
-                    <span class="absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded-md ${badgeClass} shadow-sm border border-green-200/50">
-                        ${sizeKB} KB
-                    </span>
+                <div class="p-4 flex flex-col sm:flex-row gap-4 items-center sm:items-start border-b border-gray-100 bg-gray-50/50">
+                    <!-- Photo Side -->
+                    <div class="relative flex-shrink-0 flex justify-center items-center">
+                        <img src="${objectUrl}" alt="Processed photo" class="w-28 h-36 object-cover shadow-sm border border-gray-200 rounded-lg bg-white">
+                        <span class="absolute top-1.5 right-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded ${badgeClass} shadow-sm border">
+                            ${sizeKB} KB
+                        </span>
+                    </div>
+
+                    <!-- Photo Meta Side -->
+                    <div class="flex-grow flex flex-col justify-between h-full min-w-0 w-full sm:w-auto">
+                        <div>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="px-2 py-0.5 bg-gray-800 text-white font-mono font-bold text-[10px] rounded">
+                                    ADMNO: ${escapeHtml(admissionNumber || "N/A")}
+                                </span>
+                            </div>
+                            <h4 class="font-bold text-gray-900 truncate text-base mt-1" title="${studentName}">${studentName}</h4>
+                            <p class="text-[11px] text-gray-400 truncate" title="${originalFilename}">From: ${originalFilename}</p>
+                        </div>
+                        <a href="${objectUrl}" download="${safeFilename}" class="mt-3 inline-flex justify-center items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-1.5 px-3 rounded-lg transition-colors shadow-sm w-full">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Download Photo
+                        </a>
+                    </div>
                 </div>
-                <div class="p-4 bg-white border-t border-gray-100 flex flex-col gap-1">
-                    <h4 class="font-semibold text-gray-800 truncate text-[15px]" title="${studentName}">${studentName}</h4>
-                    <p class="text-[12px] text-gray-500 truncate mb-3" title="${originalFilename}">From: ${originalFilename}</p>
-                    
-                    <a href="${objectUrl}" download="${safeFilename}" class="mt-auto w-full flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                        </svg>
-                        Download
-                    </a>
+
+                <!-- Analytical Scoreboard Side (Rendered Alongside Photo) -->
+                <div class="p-4 bg-white flex-grow flex flex-col" id="scoreboard-${cardId}">
+                    ${scoreboardHTML}
                 </div>
             `;
 
             // Append to grid
             resultsGrid.appendChild(card);
+        }
+
+        function escapeHtml(val) {
+            return String(val ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
         }
     </script>
 </body>
